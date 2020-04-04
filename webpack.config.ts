@@ -34,10 +34,8 @@ const base: Configuration = {
       template: "./src/main/index.html",
     }),
     new InjectPlugin(
-      (): string => "import {auto} from 'browser-unhandled-rejection';"
-    ),
-    new InjectPlugin(
-      (): string => "auto(); // Applies polyfill if necessary to window.Promise"
+      (): string =>
+        "import {auto} from 'browser-unhandled-rejection';\nauto(); // Applies polyfill if necessary to window.Promise"
     ),
   ],
 };
