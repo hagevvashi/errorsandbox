@@ -2,6 +2,7 @@ import { resolve } from "path";
 import type { Configuration } from "webpack";
 import { smart } from "webpack-merge";
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import InjectPlugin from "webpack-inject-plugin";
 import developmentConfig from "./webpack.development.config";
 import productionConfig from "./webpack.production.config";
 
@@ -32,6 +33,12 @@ const base: Configuration = {
     new HtmlWebpackPlugin({
       template: "./src/main/index.html",
     }),
+    new InjectPlugin(
+      (): string => "import {auto} from 'browser-unhandled-rejection';"
+    ),
+    new InjectPlugin(
+      (): string => "auto(); // Applies polyfill if necessary to window.Promise"
+    ),
   ],
 };
 
