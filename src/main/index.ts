@@ -1,44 +1,60 @@
-window.addEventListener("error", (e: ErrorEvent): void => {
-  console.log("--- start onerror handler ---");
-  console.log(e); // <1><4>succeeds in handling
-  console.log("--- end onerror handler ---");
-  console.log();
-});
+((): void => {
+  const logOnDocument = (text: string): void => {
+    const div = document.createElement("div");
+    div.innerText = text;
+    document.getElementById("app")?.appendChild(div);
+  };
 
-window.addEventListener(
-  "unhandledrejection",
-  (e: PromiseRejectionEvent): void => {
-    console.log("--- start onunhandledrejection handler ---");
-    console.log(e); // <3>fails fandling
-    console.log("--- end onunhandledrejection handler ---");
-    console.log();
-  }
-);
+  const sleep = (timeout: number): Promise<number> =>
+    new Promise((resolve): number => setTimeout(resolve, timeout));
 
-const sleep = (timeout: number): Promise<number> =>
-  new Promise((resolve): number => setTimeout(resolve, timeout));
+  const throwAnAsyncErrorFunc = (): Promise<void> =>
+    new Promise((resolve, reject): void => reject("an async error happens"));
 
-const throwAnAsyncErrorFunc = (): Promise<void> =>
-  new Promise((resolve, reject): void => reject("an async error happens"));
+  window.addEventListener("error", (e: ErrorEvent): void => {
+    // <1><4>succeeds in handling
+    logOnDocument(`
+--- start onerror handler ---\n
+${e.error}\n
+--- end onerror handler ---\n
+`);
+  });
 
-setTimeout((): never => {
-  // [4]finally throws
-  throw new Error("an error happens in setTiemout Cb");
-}, 6000);
+  window.addEventListener(
+    "unhandledrejection",
+    (e: PromiseRejectionEvent): void => {
+      // <3>fails fandling
+      logOnDocument(`
+--- start onunhandledrejection handler ---\n
+${e.reason}\n
+--- end onunhandledrejection handler ---\n
+`);
+    }
+  );
 
-(async (): Promise<void> => {
-  await sleep(3000);
-  try {
-    // [2]secondly throws
-    await throwAnAsyncErrorFunc();
-  } catch (e) {
-    console.log("--- start async catch handler ---");
-    console.log(e); // <2>succeeds in handling
-    console.log("--- end async catch handler ---");
-    console.log();
-    // [3]thirdly throws
-    throw e;
-  }
+  setTimeout((): never => {
+    logOnDocument("6 seconds have passed\n");
+    // [4]finally throws
+    throw new Error("an error happens in setTiemout Cb");
+  }, 6000);
+
+  (async (): Promise<void> => {
+    await sleep(3000);
+    logOnDocument("3 seconds have passed\n");
+
+    try {
+      // [2]secondly throws
+      await throwAnAsyncErrorFunc();
+    } catch (e) {
+      // <2>succeeds in handling
+      logOnDocument(`
+--- start async catch handler ---\n
+${e}\n
+--- end async catch handler ---\n
+`);
+      // [3]thirdly throws
+      throw e;
+    }
+  })();
+  throw new Error("a sync error happens"); // [1]firstly throws
 })();
-
-throw new Error("a sync error happens"); // [1]firstly throws

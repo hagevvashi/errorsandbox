@@ -1,16 +1,19 @@
 import { resolve } from "path";
 import type { Configuration } from "webpack";
+import { smart } from "webpack-merge";
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import developmentConfig from "./webpack.development.config";
+import productionConfig from "./webpack.production.config";
 
-const config: Configuration = {
-  mode: "production",
+const isDevelopment = process.env.NODE_ENV === "development";
+
+const config = isDevelopment ? developmentConfig : productionConfig;
+
+const base: Configuration = {
   entry: "./src/main/index.ts",
   output: {
     path: resolve(__dirname, "./docs"),
     filename: "bundle.js",
-  },
-  resolve: {
-    extensions: [".ts"],
   },
   module: {
     rules: [
@@ -32,4 +35,4 @@ const config: Configuration = {
   ],
 };
 
-export default config;
+export default smart(base, config);
